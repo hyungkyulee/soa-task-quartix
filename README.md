@@ -29,67 +29,69 @@ Design a system that
   - status
   - speed
   - latestLocation
-  - dashcams[]
 
 - Dashcams : each vehicle has zero - many dashcam units
-  - unitId
+  - dashcamId (primary)
+  - vehicleId (foreign)
   - manufacturer
   - model
   - channels[] (one channel for a camera)
 
-- VideoFootages
-  - videoId
+- channels
+  - channelId
+  - dashcamId
+
+- Footages
+  - footageId
+  - channelId
   - uploadDate
   - format
   - downloadUrl
-  - unitId
-  - channelIndex
 
-#### Serverless Resources for document DB
-```yml
-resources:
-  Resources:
-    videoFootagesTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: videoFootages-${opt:stage, self:provider.stage}
-        AttributeDefinitions:
-          - AttributeName: unitId
-            AttributeType: S
-          - AttributeName: videoId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: unitId
-            KeyType: HASH
-          - AttributeName: videoId
-            KeyType: RANGE
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-          
-    dashcamTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: videoFootages-${opt:stage, self:provider.stage}
-        AttributeDefinitions:
-          - AttributeName: unitId
-            AttributeType: S
-          - AttributeName: channelIndex
-            AttributeType: S
-          - AttributeName: videoId
-            AttributeType: S
-        KeySchema:
-          - AttributeName: category
-            KeyType: HASH
-          - AttributeName: videoId
-            KeyType: RANGE
-        ProvisionedThroughput:
-          ReadCapacityUnits: 5
-          WriteCapacityUnits: 5
-```
 
 ### API
 #### Retrieve a video uploaded from the dashcam
+
+GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
+GET /footages?vehicle=:vehicleId&startDate=:startDate&endDate=:endDate
+
+{
+  "footages": [{
+      "footageId": "12345678-1234-1234-1234-123456789012",
+      "uploadDate": "2021-12-12T00:00:00",
+      "format": "mp4",
+      "downloadUrl": "https://app.quartix.com/footages/12345678-1234-1234-1234-123456789012/download",
+      "dashcam": {
+        "dashcamId": "00000000-1234-1234-1234-123456789012",
+        "manufacturer": "quartix",
+        "model": "FF2000",
+        "channel": "2"
+      },
+    },
+  ]
+}
+
+
+var stream = apiStream(footages[1].downloadUrl)
+
+GET /footages/:footageId/download
+{
+  binary stream data
+}
+
+
+dashcam
+channel
+
+Domain Object
+ - property
+
+
+Repository
+ - 
+
+
+
 API Endpoint
 ```javascript
 GET /dashcams/unitId/channelNumber/videos?startDate=:startDate&endDate=:endDate
