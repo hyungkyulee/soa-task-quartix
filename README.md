@@ -7,7 +7,8 @@ Design a system that
 
 ## Specifications
 
-### Database
+### Database 
+#### Schema Overview
 - Trips
   - tripId
   - departureTime
@@ -34,20 +35,64 @@ Design a system that
   - unitId
   - manufacturer
   - model
-  - channels (one channel for a camera)
+  - channels[] (one channel for a camera)
 
-- Videos
+- VideoFootages
   - videoId
   - uploadDate
   - format
   - downloadUrl
   - unitId
+  - channelIndex
+
+#### Serverless Resources for document DB
+```yml
+resources:
+  Resources:
+    videoFootagesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: videoFootages-${opt:stage, self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: unitId
+            AttributeType: S
+          - AttributeName: videoId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: unitId
+            KeyType: HASH
+          - AttributeName: videoId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+          
+    dashcamTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: videoFootages-${opt:stage, self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: unitId
+            AttributeType: S
+          - AttributeName: channelIndex
+            AttributeType: S
+          - AttributeName: videoId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: category
+            KeyType: HASH
+          - AttributeName: videoId
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
+```
 
 ### API
 #### Retrieve a video uploaded from the dashcam
 API Endpoint
 ```javascript
-GET /dashcams/unitId/videos?startDate=:startDate&endDate=:endDate
+GET /dashcams/unitId/channelNumber/videos?startDate=:startDate&endDate=:endDate
 ```
 
 Example
