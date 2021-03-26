@@ -75,13 +75,14 @@ GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
   (e.g. handle 'Waiting for Camera')
 
 #### Retrieve a video stream from each mfr's api
-
+```javascript
 e.g. var stream = VideoApiReadStream(footages[1].downloadUrl)
 [reference]
 GET /footages/:footageId/download
 {
   binary stream data
 }
+```
 
 ### Objects
 #### Domain Objects
@@ -112,16 +113,17 @@ public class Channel
 }
 
 ```
+
 #### Service
 Use a Factory Method Pattern
-
+```c#
 public IDashcamFootageRepository RetrieveDashcamFootageFactory(VehicleId vehicleId, DateTime startDate, DateTime endDate)
 {
   // find mfr by vehicleId
   // select a relevant class according to mfr's dashcam
   // e.g. return new AADashcamFootage(vehicleId, startDate, endDate);
 }
-
+```
 
 #### Repository
 ```c#
