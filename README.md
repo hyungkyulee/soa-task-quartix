@@ -6,11 +6,9 @@ Design a system that
 - displays the videos in a Fleet Tracking report.
 
 ## Specifications
-
-### Database 
 #### Schema Overview
 - Vehicles : holds vehicle data
-  - vehicleId
+  - vehicleId (primary)
   - registrationNumber
   - fleetGroup
   - companyName
@@ -23,19 +21,23 @@ Design a system that
   - vehicleId (foreign)
   - manufacturer
   - model
-  - channels[] (one channel for a camera)
 
-- channels
-  - channelId
-  - dashcamId
+- channels : one channel for a camera
+  - channelId (primary)
+  - dashcamId (foreign)
 
 - Footages
-  - footageId
-  - channelId
+  - footageId (primary)
+  - channelId (foreign)
   - uploadDate
   - format
   - downloadUrl
 
+
+### UI (Client App)
+input fields
+- vehicle (vehicleId)
+- time period (startDate / endDate)
 
 ### API
 #### Retrieve video footages uploaded from the dashcam
@@ -47,6 +49,7 @@ GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
 ```
 
 [Example Response Body]
+```json
 {
   "footages": [{
       "footageId": "12345678-1234-1234-1234-123456789012",
@@ -62,6 +65,7 @@ GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
     },
   ]
 }
+```
 
 [Response HTTP Status Code]
 - 200 : OK
@@ -106,77 +110,38 @@ public class Channel
 {
   public ChannelId ChannelId { get; }
 }
+
 ```
+#### Service
+Use a Factory Method Pattern
+
+public IDashcamFootageRepository RetrieveDashcamFootageFactory(VehicleId vehicleId, DateTime startDate, DateTime endDate)
+{
+  // find mfr by vehicleId
+  // select a relevant class according to mfr's dashcam
+  // e.g. return new AADashcamFootage(vehicleId, startDate, endDate);
+}
+
 
 #### Repository
-public async Task<IEnumerable<Footage>> List();
-
-
-
-API Endpoint
-```javascript
-GET /dashcams/unitId/channelNumber/videos?startDate=:startDate&endDate=:endDate
-```
-
-Example
-```json
-GET /dashcams/unitId/videos?startDate=:startDate&endDate=:endDate
-
+```c#
+public interface IDashcamFootageRepository
 {
-  "VideoList": [{
-      "VideoId": "12345678-1234-1234-1234-123456789012",
-      "uploadDate": "2021-12-12T00:00:00",
-      "format": "mp4",
-      "downloadUrl": "https://brands.com/camera/aaa/2021-12-12-0000/video1.mp4"
-    },
-    {
-      "VideoId": "12345678-1234-1234-1234-123456789012",
-      "uploadDate": "2021-12-12T00:00:00",
-      "format": "mp4",
-      "downloadUrl": "https://brands.com/camera/aaa/2021-12-12-0000/video1.mp4"
-    }
-  ]
+  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
+}
+
+public interface AADashcamFootage : IDashcamFootageRepository
+{
+  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
+}
+
+public interface BBDashcamFootage : IDashcamFootageRepository
+{
+  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
+}
+
+public interface CCDashcamFootage : IDashcamFootageRepository
+{
+  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
 }
 ```
-
-
-
-
-#### Retrieve vehicles
-API Endpoint
-```javascript
-GET /vehicles
-```
-
-Example
-```json
-GET /dashcams/unitId/videos?startDate=:startDate&endDate=:endDate
-
-{
-  "VehicleList": [{
-      "VideoId": "12345678-1234-1234-1234-123456789012",
-      "uploadDate": "2021-12-12T00:00:00",
-      "format": "mp4",
-      "downloadUrl": "https://brands.com/camera/aaa/2021-12-12-0000/video1.mp4"
-    },
-    {
-      "VideoId": "12345678-1234-1234-1234-123456789012",
-      "uploadDate": "2021-12-12T00:00:00",
-      "format": "mp4",
-      "downloadUrl": "https://brands.com/camera/aaa/2021-12-12-0000/video1.mp4"
-    }
-  ]
-}
-```
-
-Response
-- 200 : OK
-  (e.g. handle 'No video found' or 'Video data found')
-- 403 : Forbidden
-- 400 : Bad Request
-  (e.g. handle 'Waiting for Camera')
-
-
-### UI
-input fields
-- 
