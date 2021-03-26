@@ -9,18 +9,6 @@ Design a system that
 
 ### Database 
 #### Schema Overview
-- Trips
-  - tripId
-  - departureTime
-  - arrivalTime
-  - fromLocation
-  - toLocation
-  - totalTripTime
-  - totalTripDistance
-  - averageSpeed
-  - vehicleId
-  - driverName
-
 - Vehicles : holds vehicle data
   - vehicleId
   - registrationNumber
@@ -50,11 +38,15 @@ Design a system that
 
 
 ### API
-#### Retrieve a video uploaded from the dashcam
-
+#### Retrieve video footages uploaded from the dashcam
+[Request]
+```javascript
 GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
-GET /footages?vehicle=:vehicleId&startDate=:startDate&endDate=:endDate
 
+(or GET /footages?vehicle=:vehicleId&startDate=:startDate&endDate=:endDate )
+```
+
+[Example Response Body]
 {
   "footages": [{
       "footageId": "12345678-1234-1234-1234-123456789012",
@@ -71,24 +63,53 @@ GET /footages?vehicle=:vehicleId&startDate=:startDate&endDate=:endDate
   ]
 }
 
+[Response HTTP Status Code]
+- 200 : OK
+  (e.g. handle 'No video found' or 'Video data found')
+- 403 : Forbidden
+- 400 : Bad Request
+  (e.g. handle 'Waiting for Camera')
 
-var stream = apiStream(footages[1].downloadUrl)
+#### Retrieve a video stream from each mfr's api
 
+e.g. var stream = VideoApiReadStream(footages[1].downloadUrl)
+[reference]
 GET /footages/:footageId/download
 {
   binary stream data
 }
 
+### Objects
+#### Domain Objects
+```c#
+public class Footage 
+{
+  public FootageId FootageId { get; }
+  public DateTime UploadDate { get; }
+  public string Format { get; }
+  puglic string DownloadUrl { get; }
+  public Dashcam Dashcam { get; }
+  
+  ctor ...
+  
+}
 
-dashcam
-channel
+public class Dashcam
+{
+  public DashcamId DashcamId { get; }
+  public string Manufacturer { get; }
+  public string Model { get; }
+  public IEnumerable<Channel> Channels { get; }
+}
 
-Domain Object
- - property
+public class Channel
+{
+  public ChannelId ChannelId { get; }
+}
+```
 
-
-Repository
- - 
+#### Repository
+public async Task<IEnumerable<Footage>> List();
 
 
 
@@ -118,12 +139,7 @@ GET /dashcams/unitId/videos?startDate=:startDate&endDate=:endDate
 }
 ```
 
-Response
-- 200 : OK
-  (e.g. handle 'No video found' or 'Video data found')
-- 403 : Forbidden
-- 400 : Bad Request
-  (e.g. handle 'Waiting for Camera')
+
 
 
 #### Retrieve vehicles
