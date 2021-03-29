@@ -41,6 +41,13 @@ input fields
 
 ### API
 #### Retrieve video footages uploaded from the dashcam
+Client -> Request: Search Footage API Call -> API server
+Client <- Response : return download urls <- API server
+
+Client -> DownloadUrl -> API server -> Get stream (API Key) -> Dashcam Mfrs
+Client <- streaming <- API server <- buffering <- Dashcam Video CDN <- Dashcam Mfrs
+
+
 [Request]
 ```javascript
 GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
@@ -67,6 +74,32 @@ GET /footages/vehicle/:vehicleId/from/:startDate/to/:endDate
 }
 ```
 
+[Example on EF MSSQL]
+```c#
+var footages = from footage in db.Footages
+              where footage.Channel.Dashcam.Vehicle.VehicleId == 1
+              // where DateTime.Parse(footage.UploadDate) > DateTime.Parse("2020-11-01")
+              select new
+              {
+                  FootageId = footage.FootageId,
+                  Format = footage.Format,
+                  DownloadUrl = footage.DownloadUrl,
+                  VehicleId = footage.Channel.Dashcam.Vehicle.VehicleId,
+                  UploadDate = footage.UploadDate,
+                  ChannelNumber = footage.Channel.ChannelNumber,
+                  Model = footage.Channel.Dashcam.Model,
+                  Manufacturer = footage.Channel.Dashcam.Manufacturer
+              };
+
+foreach (var footage in footages)
+{
+    Console.WriteLine($"VideoID:{footage.FootageId} searched at vehicleID({footage.VehicleId}) and Date({footage.UploadDate})");
+    Console.WriteLine($"Format: {footage.Format}");
+    Console.WriteLine($"DownloadUrl: {footage.DownloadUrl}");
+    Console.WriteLine($"Dashcam: Ch({footage.ChannelNumber}) on {footage.Model} made by {footage.Manufacturer}");
+}
+```
+
 [Response HTTP Status Code]
 - 200 : OK
   (e.g. handle 'No video found' or 'Video data found')
@@ -87,43 +120,57 @@ GET /footages/:footageId/download
 ### Objects
 #### Domain Objects
 ```c#
-public class Footage 
+[Table("Vehicles")]
+public class Vehicle
 {
-  public FootageId FootageId { get; }
-  public DateTime UploadDate { get; }
-  public string Format { get; }
-  puglic string DownloadUrl { get; }
-  public Dashcam Dashcam { get; }
-  
-  ctor ...
-  
+    [Column("VehicleId")]
+    public int VehicleId { get; set; }
+    // public int CustomerId { get; set; }
+    public string Status { get; set; }
 }
 
-public class Dashcam
+[Table("Footages")]
+public class Footage
 {
-  public DashcamId DashcamId { get; }
-  public string Manufacturer { get; }
-  public string Model { get; }
-  public IEnumerable<Channel> Channels { get; }
+    [Column("FootageId")]
+    public int FootageId { get; set; }
+    public string UploadDate { get; set; }
+    public string Format { get; set; }
+    public string DownloadUrl { get; set; }
+
+    // public int ChannelId { get; set; }
+    public Channel Channel { get; set; }
 }
 
+[Table("Channels")]
 public class Channel
 {
-  public ChannelId ChannelId { get; }
+    public int ChannelId { get; set; }
+    public int ChannelNumber { get; set; }
+
+    // public int DashcamId { get; set; }
+    public Dashcam Dashcam { get; set; }
 }
 
-```
-
-#### Service
-Use a Factory Method Pattern
-```c#
-public IDashcamFootageRepository RetrieveDashcamFootageFactory(VehicleId vehicleId, DateTime startDate, DateTime endDate)
+[Table("Dashcams")]
+public class Dashcam
 {
-  // find mfr by vehicleId
-  // select a relevant class according to mfr's dashcam
-  // e.g. return new AADashcamFootage(vehicleId, startDate, endDate);
+    public int DashcamId { get; set; }
+    public string Manufacturer { get; set; }
+    public string Model { get; set; }
+
+    // public int VehicleId { get; set; }
+    public Vehicle Vehicle { get; set; }
 }
+
 ```
+
+#### SQL Query Test
+select * from Footages f 
+join Channels c on c.ChannelId = f.ChannelId
+join Dashcams d on d.DashcamId = c.DashcamId
+join Vehicles v on v.VehicleId = d.VehicleId
+
 
 #### Repository
 ```c#
@@ -132,18 +179,4 @@ public interface IDashcamFootageRepository
   Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
 }
 
-public interface AADashcamFootage : IDashcamFootageRepository
-{
-  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
-}
-
-public interface BBDashcamFootage : IDashcamFootageRepository
-{
-  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
-}
-
-public interface CCDashcamFootage : IDashcamFootageRepository
-{
-  Task<IEnumerable<Footage>> List(VehicleId vehicleId, DateTime startDate, DateTime endDate);
-}
 ```
