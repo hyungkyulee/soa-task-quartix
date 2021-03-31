@@ -166,11 +166,12 @@ public class Dashcam
 ```
 
 #### SQL Query Test
+```sql
 select * from Footages f 
 join Channels c on c.ChannelId = f.ChannelId
 join Dashcams d on d.DashcamId = c.DashcamId
 join Vehicles v on v.VehicleId = d.VehicleId
-
+```
 
 #### Repository
 ```c#
