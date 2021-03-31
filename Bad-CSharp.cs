@@ -6,7 +6,23 @@ using System.Xml;
 
 namespace Test.Repos
 {
+    /*
+        model and dataset convention - Vehicle / Vehicles
+        class than primitive type
+        repository / dependency injection - make a data acess layer independent
+            // IServiceCollection -> Services.AddSingleton<IAmazonDynamoDB, AmazonDynamoDBClient>()
+            // private readonly IAmazonDynamoDB _dynamoDbClient;
+            // public xxxRepository(IAmazonDynamoDB dynamoDbClient)
+            // {
+            //     _dynamoDbClient = dynamoDbClient;
+            // }
+        linq to sql
+        const
+        SingleOrDefault than FirstOrDefault (error handle for multiple dataset)
+        string concatenation (such as $"" or StringBuilder())
+    */
     // public class VehicleModel
+    [Table("Vehicles")]
     public class Vehicle
     {
         public int VehicleId;

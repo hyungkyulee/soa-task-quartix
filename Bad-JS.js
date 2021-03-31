@@ -1,3 +1,27 @@
+
+/*
+		1. duplicated codes
+		2. logics with a variable dependency
+		3. long methods
+		4. global variable not protected
+
+		low readability
+		hard to add new behaviour and to validate the logic
+
+		const than var (if not changed, or in-method)
+		split fat js files into small ones
+		make the method (e.g. name or logic) understandable
+		remove a unnecessary/duplicated variable operation
+		protect global variable under an object
+
+		we can do more with modern js 
+		- class (single responsability) - good for TDD
+		- observer pattern (event handler for a state change)
+		- funcational expression
+		- modern library/package (such as moment)
+*/ 
+
+
 // menu assist javascript
 // Functions for processing menu items on a web page
 ///***** Select Region, Site, Group and Vehicle **********/
